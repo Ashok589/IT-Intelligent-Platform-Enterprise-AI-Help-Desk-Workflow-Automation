@@ -1,0 +1,121 @@
+# =========================================================
+# ENTERPRISE IT INTELLIGENCE PLATFORM
+# DOCKER COMPOSE — PRODUCTION STACK
+# =========================================================
+#
+# Services:
+#   - app:     Streamlit Enterprise IT Platform
+#   - (nginx): Optional reverse proxy (uncomment to enable)
+#
+# Usage:
+#   docker-compose up -d
+#   docker-compose logs -f app
+#   docker-compose down
+#
+# =========================================================
+
+version: "3.9"
+
+# ---------------------------------------------------------
+# SERVICES
+# ---------------------------------------------------------
+
+services:
+
+  # -------------------------------------------------------
+  # MAIN APPLICATION
+  # -------------------------------------------------------
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: enterprise-it-platform:1.0.0
+    container_name: enterprise-it-platform
+    restart: unless-stopped
+
+    # Environment — loads from .env file
+    env_file:
+      - .env
+    environment:
+      - APP_ENV=production
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8501
+      - LOG_LEVEL=INFO
+
+    # Ports
+    ports:
+      - "${APP_PORT:-8501}:8501"
+
+    # Persistent volumes — preserve data across container restarts
+    volumes:
+      - ./DATA:/app/DATA
+      - ./vectorstore:/app/vectorstore
+      - ./enterprise_it_checkpoints.db:/app/enterprise_it_checkpoints.db
+      - ./logs:/app/logs
+      - app_data:/app/.streamlit
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    # Resource limits (adjust for your MNC VM spec)
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "2.0"
+        reservations:
+          memory: 1G
+          cpus: "0.5"
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+    networks:
+      - it-platform-net
+
+  # -------------------------------------------------------
+  # NGINX REVERSE PROXY (optional — uncomment for HTTPS)
+  # -------------------------------------------------------
+  #
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: enterprise-it-nginx
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./nginx/certs:/etc/nginx/certs:ro
+  #   depends_on:
+  #     app:
+  #       condition: service_healthy
+  #   networks:
+  #     - it-platform-net
+
+# ---------------------------------------------------------
+# NETWORKS
+# ---------------------------------------------------------
+
+networks:
+  it-platform-net:
+    driver: bridge
+
+# ---------------------------------------------------------
+# VOLUMES
+# ---------------------------------------------------------
+
+volumes:
+  app_data:
+    driver: local

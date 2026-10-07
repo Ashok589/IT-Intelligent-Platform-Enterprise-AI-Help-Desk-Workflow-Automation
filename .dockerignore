@@ -1,0 +1,68 @@
+# =========================================================
+# .DOCKERIGNORE
+# =========================================================
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env.local
+.env.test
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Testing artifacts
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# IDE / editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Development docs
+*.md
+docs/
+
+# Logs (will be created at runtime)
+logs/*.log
+
+# Backup files
+*_backup.*
+*.backup
+
+# Node (if any frontend tooling exists)
+node_modules/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS files
+Thumbs.db
+Desktop.ini
